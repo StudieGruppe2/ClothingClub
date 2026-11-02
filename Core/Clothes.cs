@@ -12,4 +12,10 @@ public class Clothes
    
     public string Color { get; set; } = "";
     
+    // Samler tøjets data til én tekst, fx "kjole, str. M, rød"
+    public string GetDescription()
+    {
+        return $"{Type}, str. {Size}, {Color}";
+    }
+    
 }
