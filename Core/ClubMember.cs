@@ -2,7 +2,7 @@
 
 public class ClubMember
 {
-    public int Id { get; set; } = Random.Shared.Next();
+    public int ClubMemberId { get; set; } = Random.Shared.Next();
    
     public string Name { get; set; } = "";
    

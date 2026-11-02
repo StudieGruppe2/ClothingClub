@@ -8,7 +8,7 @@ public class Clothes
     
     public string Description { get; set; } = "";
    
-    public string size { get; set; } = "";
+    public string Size { get; set; } = "";
    
     public string Color { get; set; } = "";
     
