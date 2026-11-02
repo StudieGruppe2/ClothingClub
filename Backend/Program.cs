@@ -1,23 +1,31 @@
+using Backend.Repositories;
+using Microsoft.AspNetCore.Cors.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
+builder.Services.AddSingleton<IClothesRepository, ClothesRepository>();
+builder.Services.AddSingleton<IClubMemberRepository, ClubMemberRepository>();
+
+
+builder.Services.AddCors(OpsaetCors);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
+app.UseCors();
 
 app.MapControllers();
 
 app.Run();
+
+static void OpsaetCors(CorsOptions options)
+{
+    CorsPolicy policy = new CorsPolicyBuilder()
+        .AllowAnyOrigin()
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .Build();
+
+    options.AddDefaultPolicy(policy);
+}
