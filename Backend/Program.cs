@@ -5,8 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddSingleton<IClothesRepository, ClothesRepository>();
-builder.Services.AddSingleton<IClubMemberRepository, ClubMemberRepository>();
+builder.Services.AddSingleton<IClubMemberRepository, ClubMemberRepositoryMongoDB>();
 
 
 builder.Services.AddCors(OpsaetCors);

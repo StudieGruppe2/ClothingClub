@@ -8,48 +8,29 @@ namespace Backend.Controllers;
 [Route("[controller]")]   // adressen bliver /clothes
 public class ClothesController : ControllerBase
 {
-    private readonly IClothesRepository repository;
+    private readonly IClubMemberRepository repository;
 
-    public ClothesController(IClothesRepository repository)
+    public ClothesController(IClubMemberRepository repository)
     {
         this.repository = repository;
     }
 
-    /// <summary>Henter alt tøj.</summary>
+    /// <summary>Henter alt tøj i klubben, på tværs af medlemmer.</summary>
     [HttpGet]
     public List<Clothes> GetAll()
     {
-        return repository.GetAll();
+        return repository.GetAllClothes();
     }
 
     /// <summary>Henter ét stykke tøj ud fra id.</summary>
-    [HttpGet("{itemId}")]
-    public ActionResult<Clothes> GetById(int itemId)
+    [HttpGet("{itemID}")]
+    public ActionResult<Clothes> GetById(int itemID)
     {
-        Clothes? item = repository.GetById(itemId);
+        Clothes? item = repository.GetClothesById(itemID);
         if (item == null)
         {
             return NotFound();
         }
         return item;
-    }
-
-    /// <summary>Opretter et nyt stykke tøj.</summary>
-    [HttpPost]
-    public Clothes Create(Clothes item)
-    {
-        repository.Add(item);
-        return item;
-    }
-
-    /// <summary>Sletter et stykke tøj.</summary>
-    [HttpDelete("{itemId}")]
-    public IActionResult Delete(int itemId)
-    {
-        if (repository.Remove(itemId))
-        {
-            return Ok();
-        }
-        return NotFound();
     }
 }

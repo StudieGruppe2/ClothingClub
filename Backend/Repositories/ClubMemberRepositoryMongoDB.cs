@@ -4,22 +4,21 @@ using MongoDB.Driver;
 
 namespace Backend.Repositories;
 
-public class ClubMemberRepository : IClubMemberRepository
+public class ClubMemberRepositoryMongoDB : IClubMemberRepository
 {
     private readonly IMongoCollection<ClubMember> memberCollection;
 
-    public ClubMemberRepository()
+    public ClubMemberRepositoryMongoDB(IMongoDatabase database)
     {
+        // Fortæl MongoDB, at MemberID er nøglen (_id)
         if (!BsonClassMap.IsClassMapRegistered(typeof(ClubMember)))
         {
             BsonClassMap<ClubMember> map = new BsonClassMap<ClubMember>();
             map.AutoMap();
-            map.MapIdMember(typeof(ClubMember).GetProperty("ClubMemberID")!);
+            map.MapIdMember(typeof(ClubMember).GetProperty("MemberID")!);
             BsonClassMap.RegisterClassMap(map);
         }
 
-        MongoClient client = new MongoClient("mongodb://localhost:27017");
-        IMongoDatabase database = client.GetDatabase("ClothingClub");
         memberCollection = database.GetCollection<ClubMember>("Members");
     }
 
@@ -58,6 +57,7 @@ public class ClubMemberRepository : IClubMemberRepository
         memberCollection.InsertOne(member);
     }
 
+    // Sletter medlemmet. Tøjet ligger inde i medlemmet, så det forsvinder med.
     public void Remove(int memberID)
     {
         FilterDefinition<ClubMember> filter = Builders<ClubMember>.Filter.Eq("_id", memberID);
@@ -77,7 +77,9 @@ public class ClubMemberRepository : IClubMemberRepository
             member.Clothes = new List<Clothes>();
         }
 
+        item.ItemID = FindNextItemID();
         member.Clothes.Add(item);
+
         SaveMember(member);
     }
 
@@ -105,10 +107,60 @@ public class ClubMemberRepository : IClubMemberRepository
         }
     }
 
-    // Gemmer hele medlemmet (inkl. tøjlisten) igen
+    // Samler alt tøj fra alle medlemmer i én liste
+    public List<Clothes> GetAllClothes()
+    {
+        List<Clothes> result = new List<Clothes>();
+
+        foreach (ClubMember member in GetAll())
+        {
+            if (member.Clothes == null)
+            {
+                continue;
+            }
+
+            foreach (Clothes c in member.Clothes)
+            {
+                result.Add(c);
+            }
+        }
+
+        return result;
+    }
+
+    // Finder ét stykke tøj, uanset hvilket medlem der ejer det
+    public Clothes? GetClothesById(int itemID)
+    {
+        foreach (Clothes c in GetAllClothes())
+        {
+            if (c.ItemID == itemID)
+            {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    // Gemmer hele medlemmet (inkl. tøjlisten) i databasen igen
     private void SaveMember(ClubMember member)
     {
         FilterDefinition<ClubMember> filter = Builders<ClubMember>.Filter.Eq("_id", member.ClubMemberId);
         memberCollection.ReplaceOne(filter, member);
+    }
+
+    // Finder det højeste ItemID blandt alle medlemmers tøj og lægger 1 til
+    private int FindNextItemID()
+    {
+        int highest = 0;
+
+        foreach (Clothes c in GetAllClothes())
+        {
+            if (c.ItemID > highest)
+            {
+                highest = c.ItemID;
+            }
+        }
+
+        return highest + 1;
     }
 }

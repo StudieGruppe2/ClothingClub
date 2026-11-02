@@ -1,6 +1,6 @@
 ﻿using Core;
-namespace Backend.Repositories;
 
+namespace Backend.Repositories;
 
 public interface IClubMemberRepository
 {
@@ -9,6 +9,9 @@ public interface IClubMemberRepository
     void Add(ClubMember member);
     void Remove(int memberID);               // sletter også medlemmets tøj
 
-    void AddClothes(int memberID, Clothes item);       // NYT
-    void RemoveClothes(int memberID, int itemID);      // NYT
+    void AddClothes(int memberID, Clothes item);
+    void RemoveClothes(int memberID, int itemID);
+
+    List<Clothes> GetAllClothes();           // alt tøj på tværs af medlemmer
+    Clothes? GetClothesById(int itemID);     // ét stykke tøj ud fra id
 }
