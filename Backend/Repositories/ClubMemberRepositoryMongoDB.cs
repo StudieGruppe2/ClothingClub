@@ -198,76 +198,87 @@ public class ClubMemberRepositoryMongoDB : IClubMemberRepository
     }
     
     //Udlåner tøjet
-    public bool BorrowClothes(int itemID, int BorrowedByMemberId, DateTime BorrowedOn, DateTime DueDate)
+public bool BorrowClothes(int itemID, int borrowedByMemberId, DateTime borrowedOn, DateTime dueDate)
+{
+    // Tjekker om låneren findes
+    if (GetById(borrowedByMemberId) == null)
     {
-        // Tjekker om låneren findes
-        if (GetById(BorrowedByMemberId) == null)
-            return false;
-
-        // Gennemgår medlemmernes tøj
-        foreach (ClubMember member in GetAll())
-        {
-            foreach (Clothes item in member.Clothes)
-            {
-                if (item.ItemID == itemID)
-                {
-                    // Tjekker om tøjet allerede er udlånt
-                    if (item.BorrowedByMemberId != null)
-                        return false;
-
-                    // Registrerer låneren
-                    item.BorrowedByMemberId = BorrowedByMemberId;
-                    
-                    // Registrerer datoen for udlånet
-                    item.BorrowedOn = DateTime.UtcNow;
-
-                    // Sætter afleveringsfristen til 14 dage efter udlånet
-                    item.DueDate = DateTime.UtcNow.AddDays(14);
-                    
-                    // Gemmer ændringen i MongoDB
-                    SaveMember(member);
-
-                    return true;
-                }
-            }
-        }
-
         return false;
     }
-    
-    // Registrerer aflevering af et stykke tøj
-    public bool ReturnClothes(int itemID, int borrowedByMemberId)
+
+    // Gennemgår medlemmernes tøj
+    foreach (ClubMember member in GetAll())
     {
-        // Gennemgår alle klubmedlemmer
-        foreach (ClubMember member in GetAll())
+        if (member.Clothes == null)
         {
-            // Gennemgår hvert medlems tøj
-            foreach (Clothes item in member.Clothes)
-            {
-                // Finder det rigtige stykke tøj
-                if (item.ItemID == itemID)
-                {
-                    // Kontrollerer, at tøjet er lånt af det angivne medlem
-                    if (item.BorrowedByMemberId != borrowedByMemberId)
-                    {
-                        return false;
-                    }
-
-                    // Nulstiller udlånsoplysningerne
-                    item.BorrowedByMemberId = null;
-                    item.BorrowedOn = null;
-                    item.DueDate = null;
-
-                    // Gemmer ændringerne i MongoDB
-                    SaveMember(member);
-
-                    // Afleveringen er gennemført
-                    return true;
-                }
-            }
+            continue;
         }
 
-        // Returnerer false, hvis tøjet ikke blev fundet
-        return false;
+        foreach (Clothes item in member.Clothes)
+        {
+            if (item.ItemID == itemID)
+            {
+                // Tjekker om tøjet allerede er udlånt
+                if (item.BorrowedByMemberId != null)
+                {
+                    return false;
+                }
+
+                // Tjekker om medlemmet forsøger at låne sit eget tøj
+                if (member.ClubMemberId == borrowedByMemberId)
+                {
+                    return false;
+                }
+
+                // Registrerer låneren og datoerne
+                item.BorrowedByMemberId = borrowedByMemberId;
+                item.BorrowedOn = borrowedOn;
+                item.DueDate = dueDate;
+
+                // Gemmer ændringen i MongoDB
+                SaveMember(member);
+                return true;
+            }
+        }
     }
+
+    // Returnerer false, hvis tøjet ikke findes
+    return false;
+}
+
+// Registrerer aflevering af et stykke tøj
+public bool ReturnClothes(int itemID, int borrowedByMemberId)
+{
+    foreach (ClubMember member in GetAll())
+    {
+        if (member.Clothes == null)
+        {
+            continue;
+        }
+
+        foreach (Clothes item in member.Clothes)
+        {
+            if (item.ItemID == itemID)
+            {
+                // Kontrollerer, at tøjet er lånt af det angivne medlem
+                if (item.BorrowedByMemberId != borrowedByMemberId)
+                {
+                    return false;
+                }
+
+                // Nulstiller udlånsoplysningerne
+                item.BorrowedByMemberId = null;
+                item.BorrowedOn = null;
+                item.DueDate = null;
+
+                // Gemmer ændringerne i MongoDB
+                SaveMember(member);
+                return true;
+            }
+        }
+    }
+
+    // Returnerer false, hvis tøjet ikke blev fundet
+    return false;
+}
 }

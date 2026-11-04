@@ -20,7 +20,7 @@ public interface IClubMemberRepository
     
     Clothes? GetClothesById(int itemID);     // ét stykke tøj ud fra id
     
-    bool BorrowClothes(int BorrowedByMemberId, int itemID, DateTime BorrowedOn, DateTime DueDate);
-    
-    bool ReturnClothes(int itemID, int BorrowedByMemberId);
+    bool BorrowClothes(int itemID, int borrowedByMemberId, DateTime borrowedOn, DateTime dueDate);
+
+    bool ReturnClothes(int itemID, int borrowedByMemberId);
 }

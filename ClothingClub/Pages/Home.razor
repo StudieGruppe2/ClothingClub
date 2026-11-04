@@ -1,12 +1,13 @@
-﻿
-@page "/"
-@using Core
+﻿@page "/"
 @using System.Net.Http.Json
+@using Core
 @inject HttpClient Http
 
 <PageTitle>Tøjklubben</PageTitle>
 
 <div class="home-page">
+
+    <!-- TOP: Velkomst, knapper og billede -->
     <div class="welcome-container">
 
         <!-- VENSTRE: Velkomsttekst -->
@@ -17,11 +18,11 @@
 
         <!-- MIDTEN: Knapper -->
         <div class="welcome-buttons">
-            <button class="btn btn-primary"  ><!--@onclick="ShowRegisterForm"-->
+            <button class="btn btn-primary" @onclick="ShowRegisterForm">
                 Bliv en del af klubben
             </button>
 
-            <button class="btn btn-outline-primary"> <!--@onclick="ShowClothesForm"-->
+            <button class="btn btn-outline-primary" @onclick="ShowClothesForm">
                 Tilføj tøj
             </button>
         </div>
@@ -30,15 +31,60 @@
         <img src="images/ClothesClub.png"
              alt="Illustration af tøj"
              class="welcome-image" />
-
     </div>
 
-  
+    <!-- FORMULAR: Bliv medlem -->
+    @if (showRegisterForm)
+    {
+        <div class="form-box">
+            <input class="form-control mb-2" placeholder="Navn" @bind="newMember.Name" />
+            <input class="form-control mb-2" placeholder="Email" @bind="newMember.EmailAddress" />
+            <input class="form-control mb-2" placeholder="Telefon" @bind="newMember.Phonenumber" />
+            <button class="btn btn-primary" @onclick="RegisterMember">Gem</button>
+        </div>
+    }
+
+    <!-- FORMULAR: Tilføj tøj -->
+    @if (showClothesForm)
+    {
+        <div class="form-box">
+            <select class="form-select mb-2" @bind="selectedMemberID">
+                <option value="0">Vælg medlem</option>
+                @foreach (ClubMember m in members)
+                {
+                    <option value="@m.ClubMemberId">@m.Name</option>
+                }
+            </select>
+            <input class="form-control mb-2" placeholder="Type" @bind="newClothes.Type" />
+            <input class="form-control mb-2" placeholder="Størrelse" @bind="newClothes.Size" />
+            <input class="form-control mb-2" placeholder="Farve" @bind="newClothes.Color" />
+            <input class="form-control mb-2" placeholder="Beskrivelse" @bind="newClothes.Description" />
+            <button class="btn btn-primary" @onclick="AddClothes">Gem</button>
+        </div>
+    }
+
+    <!-- FORMULAR: Lån tøj -->
+    @if (selectedItemID != null)
+    {
+        <div class="form-box">
+            <select class="form-select mb-2" @bind="borrowerID">
+                <option value="0">Hvem låner?</option>
+                @foreach (ClubMember m in members)
+                {
+                    <option value="@m.ClubMemberId">@m.Name</option>
+                }
+            </select>
+            <button class="btn btn-primary" @onclick="BorrowClothes">Lån</button>
+        </div>
+    }
+
+    <!-- NEDERST: Medlemmer og tøj -->
     <div class="container-box">
-        <!--Venstre side: Klubmedlemmer-->
+
+        <!-- Venstre side: Klubmedlemmer -->
         <div class="member-box">
             <h3>Klubmedlemmer</h3>
-            <hr/>
+            <hr />
             @foreach (ClubMember member in members)
             {
                 <div class="member-row">
@@ -47,12 +93,11 @@
                 </div>
             }
         </div>
-        
-        
-        <!--Højre side: Alt tøj-->
+
+        <!-- Højre side: Alt tøj -->
         <div class="clothes-box">
             <h3>Alt tøj i låneklubben</h3>
-            <hr/>
+            <hr />
             <div class="clothes-grid">
                 @foreach (Clothes item in clothes)
                 {
@@ -60,7 +105,7 @@
                         <div class="card-body">
                             <h5>@item.Type</h5>
                             <p>Str. @item.Size · @item.Color</p>
-                            @if (item.IsBorrowed)
+                            @if (item.BorrowedByMemberId != null)
                             {
                                 <span class="badge bg-danger">Udlånt</span>
                                 <p class="due-date">
@@ -70,8 +115,7 @@
                             else
                             {
                                 <span class="badge bg-success">Ledig</span>
-                                <button class="btn borrow-button">
-                                <!-- @onclick="() => ShowBorrowForm(item.ItemID)">-->
+                                <button class="btn borrow-button" @onclick="() => ShowBorrowForm(item.ItemID)">
                                     Lån tøj
                                 </button>
                             }
@@ -83,44 +127,78 @@
     </div>
 </div>
 
-
 @code {
-    // Listerne, der skal indeholde data fra backend
+    // Adressen på backenden
+    const string apiUrl = "http://localhost:5049";
+
+    // Data fra backend
     private List<ClubMember> members = new();
     private List<Clothes> clothes = new();
-    private int? selectedItemID = null;
+
+    // Det, der udfyldes i formularerne
+    private ClubMember newMember = new();
+    private Clothes newClothes = new();
+    private int selectedMemberID;   // hvem ejer tøjet
+    private int borrowerID;         // hvem låner tøjet
+
+    // Hvilken formular der vises
     private bool showRegisterForm = false;
     private bool showClothesForm = false;
+    private int? selectedItemID = null;   // tøjet der skal lånes
 
-    // Metoden kaldes automatisk, når siden initialiseres
+    // Kaldes automatisk, når siden åbner
     protected override async Task OnInitializedAsync()
     {
-        // Henter klubmedlemmer fra backend
-        members = await Http.GetFromJsonAsync<List<ClubMember>>(
-            "http://localhost:5277/clubmember"
-        ) ?? new();
-
-        // Henter alt tøj fra backend
-        clothes = await Http.GetFromJsonAsync<List<Clothes>>(
-            "http://localhost:5277/clothes"
-        ) ?? new();
+        await LoadData();
     }
 
-   /*public ClubMember ShowRegisterForm(String Emailadresse, string Name, string Phonenumber)
+    // Henter medlemmer og tøj fra backend
+    private async Task LoadData()
     {
-        
+        members = await Http.GetFromJsonAsync<List<ClubMember>>($"{apiUrl}/clubmember") ?? new();
+        clothes = await Http.GetFromJsonAsync<List<Clothes>>($"{apiUrl}/clothes") ?? new();
     }
 
-    public Clothes ShowClothesForm (int memberID, Clothes item)
+    // Vis formularer
+    private void ShowRegisterForm()
     {
-        
+        showRegisterForm = true;
     }
-    
 
-   private void ShowBorrowForm(int itemID)
-   {
-       selectedItemID = itemID;
-   }
-   */
+    private void ShowClothesForm()
+    {
+        showClothesForm = true;
+    }
 
+    private void ShowBorrowForm(int itemID)
+    {
+        selectedItemID = itemID;
+    }
+
+    // Gem nyt medlem
+    private async Task RegisterMember()
+    {
+        await Http.PostAsJsonAsync($"{apiUrl}/clubmember", newMember);
+        newMember = new();
+        showRegisterForm = false;
+        await LoadData();
+    }
+
+    // Gem nyt tøj
+    private async Task AddClothes()
+    {
+        await Http.PostAsJsonAsync($"{apiUrl}/clubmember/{selectedMemberID}/clothes", newClothes);
+        newClothes = new();
+        showClothesForm = false;
+        await LoadData();
+    }
+
+    // Lån tøj i 14 dage
+    private async Task BorrowClothes()
+    {
+        string dueDate = DateTime.Today.AddDays(14).ToString("yyyy-MM-dd");
+        await Http.PutAsync($"{apiUrl}/clothes/{selectedItemID}/borrow?memberId={borrowerID}&dueDate={dueDate}", null);
+        selectedItemID = null;
+        await LoadData();
+    }
 }
