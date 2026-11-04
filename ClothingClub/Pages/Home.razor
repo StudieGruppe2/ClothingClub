@@ -17,11 +17,11 @@
 
         <!-- MIDTEN: Knapper -->
         <div class="welcome-buttons">
-            <button class="btn btn-primary">
+            <button class="btn btn-primary"  ><!--@onclick="ShowRegisterForm"-->
                 Bliv en del af klubben
             </button>
 
-            <button class="btn btn-outline-primary">
+            <button class="btn btn-outline-primary"> <!--@onclick="ShowClothesForm"-->
                 Tilføj tøj
             </button>
         </div>
@@ -70,8 +70,8 @@
                             else
                             {
                                 <span class="badge bg-success">Ledig</span>
-                                <button class="btn borrow-button"
-                                        @onclick="() => ShowBorrowForm(item.ItemID)">
+                                <button class="btn borrow-button">
+                                <!-- @onclick="() => ShowBorrowForm(item.ItemID)">-->
                                     Lån tøj
                                 </button>
                             }
@@ -83,12 +83,14 @@
     </div>
 </div>
 
-@code {
 
+@code {
     // Listerne, der skal indeholde data fra backend
     private List<ClubMember> members = new();
     private List<Clothes> clothes = new();
     private int? selectedItemID = null;
+    private bool showRegisterForm = false;
+    private bool showClothesForm = false;
 
     // Metoden kaldes automatisk, når siden initialiseres
     protected override async Task OnInitializedAsync()
@@ -104,20 +106,21 @@
         ) ?? new();
     }
 
-   /* public ClubMember registerMember(String Emailadresse, string Name, string Phonenumber)
+   /*public ClubMember ShowRegisterForm(String Emailadresse, string Name, string Phonenumber)
     {
         
     }
 
-    public Clothes addClothes(int memberID, Clothes item)
+    public Clothes ShowClothesForm (int memberID, Clothes item)
     {
         
     }
-    */
+    
 
    private void ShowBorrowForm(int itemID)
    {
        selectedItemID = itemID;
    }
+   */
 
 }
