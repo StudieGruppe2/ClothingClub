@@ -34,16 +34,36 @@ public class ClothesController : ControllerBase
         return item;
     }
 
+    // Ruten er /clothes/{itemID}/borrow, så den matcher frontend-kaldet.
     // Put fordi vi opdatere et eksisterende clothes.objekt og ikke opretter et nyt loan-objekt
-    [HttpPut]
-    public bool BorrowClothes(int BorrowedByMemberId, int itemID, DateTime BorrowedOn, DateTime DueDate)
+    [HttpPut("{itemID}/borrow")]
+    public IActionResult BorrowClothes(int itemID, int memberId, DateTime dueDate)
     {
-        return repository.BorrowClothes(BorrowedByMemberId, itemID, BorrowedOn, DueDate);
+        //Udlånsdatoen sættes af serveren, så klienten ikke skal sende den.
+        bool success = repository.BorrowClothes(itemID, memberId, DateTime.UtcNow, dueDate);
+
+        // Returnerer en rigtig HTTP-status, så frontend kan se om det lykkedes.
+        if (!success)
+        {
+            return BadRequest("Tøjet kunne ikke lånes (findes ikke, er udlånt, eller du ejer det selv).");
+        }
+
+        return Ok();
+    }
+
+    // rute (/clothes/{itemID}/return).
+    [HttpPut("{itemID}/return")]
+    public IActionResult ReturnClothes(int itemID, int memberId)
+    {
+        bool success = repository.ReturnClothes(itemID, memberId);
+
+        if (!success)
+        {
+            return BadRequest("Tøjet kunne ikke afleveres.");
+        }
+
+        return Ok();
     }
     
-    [HttpPut]
-    public bool ReturnClothes(int itemID, int borrowedByMemberId)
-    {
-        return repository.ReturnClothes(itemID, borrowedByMemberId);
-    }
+    
 }

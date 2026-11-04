@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddSingleton<IClubMemberRepository, ClubMemberRepositoryMemory>();
+//Skift fra Memory til MongoDB, når databasen skal bruges
+//builder.Services.AddSingleton<IClubMemberRepository, ClubMemberRepositoryMongoDB>();
 
 
 builder.Services.AddCors(OpsaetCors);

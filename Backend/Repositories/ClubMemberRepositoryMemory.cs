@@ -250,9 +250,10 @@ public ClubMemberRepositoryMemory()
                     }
 
                     // Registrerer låneren og udlånsdatoerne
+                    // Bruger de datoer, der sendes ind, i stedet for at ignorere dem.
                     item.BorrowedByMemberId = borrowedByMemberId;
-                    item.BorrowedOn = DateTime.UtcNow;
-                    item.DueDate = item.BorrowedOn.Value.AddDays(14);
+                    item.BorrowedOn = borrowedOn;
+                    item.DueDate = dueDate;
 
                     return true;
                 }
@@ -271,7 +272,12 @@ public ClubMemberRepositoryMemory()
         {
             // Gennemgår medlemmets tøj
             foreach (Clothes item in member.Clothes)
-            {
+            { 
+                //Springer medlemmer uden tøjliste over
+                if (member.Clothes == null)
+                {
+                    continue;
+                }
                 // Finder det rigtige stykke tøj
                 if (item.ItemID == itemID)
                 {

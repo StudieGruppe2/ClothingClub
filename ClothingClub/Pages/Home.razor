@@ -40,7 +40,7 @@
             <input class="form-control mb-2" placeholder="Navn" @bind="newMember.Name" />
             <input class="form-control mb-2" placeholder="Email" @bind="newMember.EmailAddress" />
             <input class="form-control mb-2" placeholder="Telefon" @bind="newMember.Phonenumber" />
-            <button class="btn btn-primary" @onclick="RegisterMember">Gem</button>
+            <button class="btn borrow-button" @onclick="RegisterMember">Gem</button>
         </div>
     }
 
@@ -59,7 +59,7 @@
             <input class="form-control mb-2" placeholder="Størrelse" @bind="newClothes.Size" />
             <input class="form-control mb-2" placeholder="Farve" @bind="newClothes.Color" />
             <input class="form-control mb-2" placeholder="Beskrivelse" @bind="newClothes.Description" />
-            <button class="btn btn-primary" @onclick="AddClothes">Gem</button>
+            <button class="btn borrow-button" @onclick="AddClothes">Gem</button>
         </div>
     }
 
@@ -195,10 +195,25 @@
 
     // Lån tøj i 14 dage
     private async Task BorrowClothes()
-    {
+    { 
+        // Stopper, hvis der ikke er valgt en låner ("Hvem låner?" har værdien 0)
+        if (borrowerID == 0)
+        {
+            return;
+        }
         string dueDate = DateTime.Today.AddDays(14).ToString("yyyy-MM-dd");
-        await Http.PutAsync($"{apiUrl}/clothes/{selectedItemID}/borrow?memberId={borrowerID}&dueDate={dueDate}", null);
-        selectedItemID = null;
+
+        //Gemmer svaret fra backend, så vi kan tjekke om udlånet lykkedes
+        HttpResponseMessage response = await Http.PutAsync(
+            $"{apiUrl}/clothes/{selectedItemID}/borrow?memberId={borrowerID}&dueDate={dueDate}", null);
+    
+        // Lukker kun formularen, hvis udlånet gik godt.
+        // Ellers bliver den stående, så man kan se, at noget gik galt.
+        if (response.IsSuccessStatusCode)
+        {
+            selectedItemID = null;
+            borrowerID = 0; //Nulstiller valget til næste gang
+        }
         await LoadData();
     }
 }
