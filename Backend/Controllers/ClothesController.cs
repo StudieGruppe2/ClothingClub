@@ -33,4 +33,17 @@ public class ClothesController : ControllerBase
         }
         return item;
     }
+
+    // Put fordi vi opdatere et eksisterende clothes.objekt og ikke opretter et nyt loan-objekt
+    [HttpPut]
+    public bool BorrowClothes(int BorrowedByMemberId, int itemID, DateTime BorrowedOn, DateTime DueDate)
+    {
+        return repository.BorrowClothes(BorrowedByMemberId, itemID, BorrowedOn, DueDate);
+    }
+    
+    [HttpPut]
+    public bool ReturnClothes(int itemID, int borrowedByMemberId)
+    {
+        return repository.ReturnClothes(itemID, borrowedByMemberId);
+    }
 }

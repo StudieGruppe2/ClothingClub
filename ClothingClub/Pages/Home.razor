@@ -1,7 +1,106 @@
-﻿@page "/"
+﻿
+@page "/"
+@using Core
+@using System.Net.Http.Json
+@inject HttpClient Http
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Tøjklubben</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="home-page">
+    <div class="welcome-container">
+        <h1>Velkommen til Tøjklubben!</h1>
+        <p class="intro-text">Del, genbrug og lån tøj med resten af klubben!</p>
+        <br/>
+        <br/>
+        
+        <!--knap til hvis man vil registrere sig-->
+        
+        <!--knap til hvis man vil tilføje tøj-->
+        
+        <img src="images/tojklub.png"
+             alt="Illustration af tøj"
+             class="welcome-image" />
+    </div>
 
-Welcome to your new app.
+  
+    <div class="container-box">
+
+        <!-- VENSTRE SIDE: Klubmedlemmer -->
+        <div class="member-box">
+
+            <h3>Klubmedlemmer</h3>
+            <hr/>
+
+            @foreach (ClubMember member in members)
+            {
+                <div class="member-row">
+                    <span class="member-name">@member.Name</span>
+                    <span class="member-email">@member.EmailAddress</span>
+                </div>
+            }
+
+        </div>
+
+        <!-- HØJRE SIDE: Alt tøj -->
+        <div class="clothes-box">
+
+            <h3>Alt tøj i låneklubben</h3>
+            <hr/>
+
+            <div class="clothes-grid">
+
+                @foreach (Clothes item in clothes)
+                {
+                    <div class="card">
+                        <div class="card-body">
+
+                            <h5>@item.Type</h5>
+
+                            <p>Str. @item.Size · @item.Color</p>
+
+                            @if (item.IsBorrowed)
+                            {
+                                <span class="badge bg-danger">Udlånt</span>
+
+                                <p class="due-date">
+                                    Ledig igen: @item.DueDate?.ToString("dd.MM.yyyy")
+                                </p>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">Ledig</span>
+                            }
+
+                        </div>
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@code {
+
+    // Listerne, der skal indeholde data fra backend
+    private List<ClubMember> members = new();
+    private List<Clothes> clothes = new();
+
+    // Metoden kaldes automatisk, når siden initialiseres
+    protected override async Task OnInitializedAsync()
+    {
+        // Henter klubmedlemmer fra backend
+        members = await Http.GetFromJsonAsync<List<ClubMember>>(
+            "http://localhost:5277/clubmember"
+        ) ?? new();
+
+        // Henter alt tøj fra backend
+        clothes = await Http.GetFromJsonAsync<List<Clothes>>(
+            "http://localhost:5277/clothes"
+        ) ?? new();
+    }
+
+}

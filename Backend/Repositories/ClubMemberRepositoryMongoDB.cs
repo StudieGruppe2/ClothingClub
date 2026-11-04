@@ -6,106 +6,139 @@ namespace Backend.Repositories;
 
 public class ClubMemberRepositoryMongoDB : IClubMemberRepository
 {
+    //Database forbindelse - skal rettes i program så den virker
     private readonly IMongoCollection<ClubMember> memberCollection;
 
     public ClubMemberRepositoryMongoDB(IMongoDatabase database)
     {
-        // Fortæl MongoDB, at MemberID er nøglen (_id)
+        // Fortæl MongoDB, at ClubMemberId er nøglen (_id)
         if (!BsonClassMap.IsClassMapRegistered(typeof(ClubMember)))
         {
             BsonClassMap<ClubMember> map = new BsonClassMap<ClubMember>();
             map.AutoMap();
-            map.MapIdMember(typeof(ClubMember).GetProperty("MemberID")!);
+            map.MapIdMember(typeof(ClubMember).GetProperty("ClubMemberId")!);
             BsonClassMap.RegisterClassMap(map);
         }
 
         memberCollection = database.GetCollection<ClubMember>("Members");
     }
-
+    
+   
+    //Henter alle klubmedlemmer
     public List<ClubMember> GetAll()
     {
         FilterDefinition<ClubMember> filter = Builders<ClubMember>.Filter.Empty;
         return memberCollection.Find(filter).ToList();
     }
-
-    public ClubMember? GetById(int memberID)
+    
+    
+    // Henter klubmedlem udfra medlemsid
+    public ClubMember? GetById(int ClubMemberId)
     {
-        FilterDefinition<ClubMember> filter = Builders<ClubMember>.Filter.Eq("_id", memberID);
+        FilterDefinition<ClubMember> filter = Builders<ClubMember>.Filter.Eq("_id", ClubMemberId);
         return memberCollection.Find(filter).FirstOrDefault();
     }
+    
 
+    // Tilføjer et klubmedlem og tildeler et ID
     public void Add(ClubMember member)
     {
+        // Opretter et tomt filter, så alle medlemmer medtages
         FilterDefinition<ClubMember> filter = Builders<ClubMember>.Filter.Empty;
+        
+        // Sorterer medlemmerne efter ID, fra højeste til laveste
         SortDefinition<ClubMember> sort = Builders<ClubMember>.Sort.Descending("_id");
+
+        // Finder medlemmet med det højeste ID og gemmer det i "last".
+        // Hvis databasen er tom, bliver last = null.
         ClubMember? last = memberCollection.Find(filter).Sort(sort).FirstOrDefault();
 
+        // Hvis der ikke findes medlemmer, starter ID på 1
         if (last == null)
         {
             member.ClubMemberId = 1;
         }
         else
         {
+            // Ellers får det nye medlem et ID, der er 1 højere end det højeste
             member.ClubMemberId = last.ClubMemberId + 1;
         }
 
+        // Sørger for, at medlemmet har en tom tøjliste, hvis listen er null
         if (member.Clothes == null)
         {
             member.Clothes = new List<Clothes>();
         }
 
+        // Gemmer det nye medlem i MongoDB
         memberCollection.InsertOne(member);
     }
 
+    
     // Sletter medlemmet. Tøjet ligger inde i medlemmet, så det forsvinder med.
-    public void Remove(int memberID)
+    public void Remove(int ClubMemberId)
     {
-        FilterDefinition<ClubMember> filter = Builders<ClubMember>.Filter.Eq("_id", memberID);
+        // Opretter et filter, der finder medlemmet med det angivne ID
+        FilterDefinition<ClubMember> filter = Builders<ClubMember>.Filter.Eq("_id", ClubMemberId);
         memberCollection.DeleteOne(filter);
     }
-
-    public void AddClothes(int memberID, Clothes item)
+    
+    // Tilføjer tøj til klubmedlemmet udfra medlemsid'et
+    public void AddClothes(int ClubMemberId, Clothes item)
     {
-        ClubMember? member = GetById(memberID);
+        ClubMember? member = GetById(ClubMemberId); // finder medlemmet
+       
+        //Hvis medlemmet ikke fidnes slutter metoden
         if (member == null)
         {
             return;
         }
-
+        // hvis medlemmet ikke har en øjliste laves en ny
         if (member.Clothes == null)
         {
             member.Clothes = new List<Clothes>();
         }
 
-        item.ItemID = FindNextItemID();
+        //Finder næste tøj-id og tildeler det
+        item.ItemID = FindNextItemID(); // Kalder vores metode herfor
         member.Clothes.Add(item);
 
+        //Gemmer det opdateret medlem og tøjet
         SaveMember(member);
     }
 
-    public void RemoveClothes(int memberID, int itemID)
+    
+    //Sletter tøjet
+    public void RemoveClothes(int ClubMemberId, int itemID)
     {
-        ClubMember? member = GetById(memberID);
+        ClubMember? member = GetById(ClubMemberId); //Finder medlemmet
+        
+        // Slutter metoden hvis medlem og tøjlisten er null
         if (member == null || member.Clothes == null)
         {
             return;
         }
 
+        // Opretter en variabel til at gemme tøjet, vi leder efter
         Clothes? found = null;
         foreach (Clothes c in member.Clothes)
         {
+            // Kontrollerer, om tøjets ID matcher det angivne itemID
             if (c.ItemID == itemID)
             {
+                // Gemmer det fundne tøj i variablen found
                 found = c;
             }
         }
 
+        // Hvis tøjet blev fundet, fjernes det fra listen
         if (found != null)
         {
             member.Clothes.Remove(found);
             SaveMember(member);
         }
     }
+    
 
     // Samler alt tøj fra alle medlemmer i én liste
     public List<Clothes> GetAllClothes()
@@ -149,7 +182,7 @@ public class ClubMemberRepositoryMongoDB : IClubMemberRepository
     }
 
     // Finder det højeste ItemID blandt alle medlemmers tøj og lægger 1 til
-    private int FindNextItemID()
+    private int FindNextItemID() // Private fordi det er en "hjælpemetode" til vores addClothes
     {
         int highest = 0;
 
@@ -162,5 +195,79 @@ public class ClubMemberRepositoryMongoDB : IClubMemberRepository
         }
 
         return highest + 1;
+    }
+    
+    //Udlåner tøjet
+    public bool BorrowClothes(int itemID, int BorrowedByMemberId, DateTime BorrowedOn, DateTime DueDate)
+    {
+        // Tjekker om låneren findes
+        if (GetById(BorrowedByMemberId) == null)
+            return false;
+
+        // Gennemgår medlemmernes tøj
+        foreach (ClubMember member in GetAll())
+        {
+            foreach (Clothes item in member.Clothes)
+            {
+                if (item.ItemID == itemID)
+                {
+                    // Tjekker om tøjet allerede er udlånt
+                    if (item.BorrowedByMemberId != null)
+                        return false;
+
+                    // Registrerer låneren
+                    item.BorrowedByMemberId = BorrowedByMemberId;
+                    
+                    // Registrerer datoen for udlånet
+                    item.BorrowedOn = DateTime.UtcNow;
+
+                    // Sætter afleveringsfristen til 14 dage efter udlånet
+                    item.DueDate = DateTime.UtcNow.AddDays(14);
+                    
+                    // Gemmer ændringen i MongoDB
+                    SaveMember(member);
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+    
+    // Registrerer aflevering af et stykke tøj
+    public bool ReturnClothes(int itemID, int borrowedByMemberId)
+    {
+        // Gennemgår alle klubmedlemmer
+        foreach (ClubMember member in GetAll())
+        {
+            // Gennemgår hvert medlems tøj
+            foreach (Clothes item in member.Clothes)
+            {
+                // Finder det rigtige stykke tøj
+                if (item.ItemID == itemID)
+                {
+                    // Kontrollerer, at tøjet er lånt af det angivne medlem
+                    if (item.BorrowedByMemberId != borrowedByMemberId)
+                    {
+                        return false;
+                    }
+
+                    // Nulstiller udlånsoplysningerne
+                    item.BorrowedByMemberId = null;
+                    item.BorrowedOn = null;
+                    item.DueDate = null;
+
+                    // Gemmer ændringerne i MongoDB
+                    SaveMember(member);
+
+                    // Afleveringen er gennemført
+                    return true;
+                }
+            }
+        }
+
+        // Returnerer false, hvis tøjet ikke blev fundet
+        return false;
     }
 }

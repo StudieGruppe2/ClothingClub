@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddSingleton<IClubMemberRepository, ClubMemberRepositoryMongoDB>();
+builder.Services.AddSingleton<IClubMemberRepository, ClubMemberRepositoryMemory>();
 
 
 builder.Services.AddCors(OpsaetCors);

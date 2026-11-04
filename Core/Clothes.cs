@@ -12,10 +12,21 @@ public class Clothes
    
     public string Color { get; set; } = "";
     
+    public int? BorrowedByMemberId { get; set; } // Id'et på hvem der har lånt tøjet
+    
+    public DateTime? BorrowedOn { get; set; } // så vi holder øje med hvornår det er lånt ud - spørgsmålstegn betyder at værdien kan være null
+    
+    public DateTime? DueDate { get; set; } // den dato tøjet skal afleveres tilbage fra lån 
+    
     // Samler tøjets data til én tekst, fx "kjole, str. M, rød"
     public string GetDescription()
     {
         return $"{Type}, str. {Size}, {Color}";
+    }
+    
+    public bool IsBorrowed // Bruges til at vise til andre om tøjet er udlånt
+    {
+        get { return BorrowedByMemberId != null; }
     }
     
 }
