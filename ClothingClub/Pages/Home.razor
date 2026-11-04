@@ -8,23 +8,34 @@
 
 <div class="home-page">
     <div class="welcome-container">
-        <h1>Velkommen til Tøjklubben!</h1>
-        <p class="intro-text">Del, genbrug og lån tøj med resten af klubben!</p>
-        <br/>
-        <br/>
-        
-        <!--knap til hvis man vil registrere sig-->
-        
-        <!--knap til hvis man vil tilføje tøj-->
-        
-        <img src="images/tojklub.png"
+
+        <!-- VENSTRE: Velkomsttekst -->
+        <div class="welcome-text">
+            <h1>Velkommen til Tøjklubben!</h1>
+            <p>Del, genbrug og lån tøj med resten af klubben!</p>
+        </div>
+
+        <!-- MIDTEN: Knapper -->
+        <div class="welcome-buttons">
+            <button class="btn btn-primary">
+                Bliv en del af klubben
+            </button>
+
+            <button class="btn btn-outline-primary">
+                Tilføj tøj
+            </button>
+        </div>
+
+        <!-- HØJRE: Billede -->
+        <img src="images/ClothesClub.png"
              alt="Illustration af tøj"
              class="welcome-image" />
+
     </div>
 
   
     <div class="container-box">
-        <!-- VENSTRE SIDE: Klubmedlemmer -->
+        <!--Venstre side: Klubmedlemmer-->
         <div class="member-box">
             <h3>Klubmedlemmer</h3>
             <hr/>
@@ -38,7 +49,7 @@
         </div>
         
         
-        <!-- HØJRE SIDE: Alt tøj -->
+        <!--Højre side: Alt tøj-->
         <div class="clothes-box">
             <h3>Alt tøj i låneklubben</h3>
             <hr/>
@@ -59,6 +70,10 @@
                             else
                             {
                                 <span class="badge bg-success">Ledig</span>
+                                <button class="btn borrow-button"
+                                        @onclick="() => ShowBorrowForm(item.ItemID)">
+                                    Lån tøj
+                                </button>
                             }
                         </div>
                     </div>
@@ -73,6 +88,7 @@
     // Listerne, der skal indeholde data fra backend
     private List<ClubMember> members = new();
     private List<Clothes> clothes = new();
+    private int? selectedItemID = null;
 
     // Metoden kaldes automatisk, når siden initialiseres
     protected override async Task OnInitializedAsync()
@@ -87,5 +103,21 @@
             "http://localhost:5277/clothes"
         ) ?? new();
     }
+
+   /* public ClubMember registerMember(String Emailadresse, string Name, string Phonenumber)
+    {
+        
+    }
+
+    public Clothes addClothes(int memberID, Clothes item)
+    {
+        
+    }
+    */
+
+   private void ShowBorrowForm(int itemID)
+   {
+       selectedItemID = itemID;
+   }
 
 }

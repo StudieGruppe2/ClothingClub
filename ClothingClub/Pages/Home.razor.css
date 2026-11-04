@@ -32,20 +32,49 @@ p {
 
 .welcome-container {
     display: flex;
-    align-items: center;/* Centrerer tekst og billede lodret */
-    justify-content: space-between;
+    align-items: center; /* Centrerer de tre områder lodret */
     gap: 30px;
     padding-bottom: 20px;
     border-bottom: 2px solid #aa6270;
 }
 
+/* Velkomsttekst til venstre */
 .welcome-text {
     flex: 1;
 }
 
+/* Knapper i midten */
+.welcome-buttons {
+    flex: 1;
+    display: flex;
+    flex-direction: column; /* Knapperne under hinanden */
+    align-items: center;
+    gap: 12px;
+}
+
+/* Knappernes størrelse */
+.welcome-buttons .btn {
+    width: 220px;
+}
+
+/* Registreringsknap - vinrød */
+.welcome-buttons .btn-primary {
+    background-color: #722f37;
+    border-color: #722f37;
+    color: white;
+}
+
+/* Tilføj tøj-knap - vinrød kant */
+.welcome-buttons .btn-outline-primary {
+    background-color: transparent;
+    border-color: #722f37;
+    color: #722f37;
+}
+
+/* Billede til højre */
 .welcome-image {
-    width: 250px;/* Billedets bredde */
-    height: auto;/* Bevarer billedets proportioner */
+    width: 250px;
+    height: auto;
     object-fit: contain;
 }
 
@@ -56,7 +85,9 @@ p {
     align-items: flex-start;/*Undgår at medlemsboksen bliver lige så høj som tøjdelen */
     gap: 25px;/*afstand mellem sektionerne */
     width: 100%;
+    padding-top: 20px;
 }
+
 /* Styling til begge store bokse */
 .member-box,
 .clothes-box {
@@ -170,4 +201,17 @@ p {
     .member-row {
         flex-wrap: wrap;
     }
+}
+
+/* Lån tøj-knappen */
+.borrow-button {
+    display: block;
+    background-color: #722f37; /* Vinrød baggrund */
+    color: white;/* Hvid tekst */
+    border: 1px solid #722f37;
+    border-radius: 8px;/* Afrundede hjørner */
+    padding: 6px 16px;/* Luft inde i knappen */
+    margin-top: 12px;/* Afstand til teksten ovenover */
+    font-size: 14px;
+    width: fit-content;/* Knappen fylder kun det nødvendige */
 }
