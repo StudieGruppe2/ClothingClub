@@ -24,13 +24,10 @@
 
   
     <div class="container-box">
-
         <!-- VENSTRE SIDE: Klubmedlemmer -->
         <div class="member-box">
-
             <h3>Klubmedlemmer</h3>
             <hr/>
-
             @foreach (ClubMember member in members)
             {
                 <div class="member-row">
@@ -38,30 +35,23 @@
                     <span class="member-email">@member.EmailAddress</span>
                 </div>
             }
-
         </div>
-
+        
+        
         <!-- HØJRE SIDE: Alt tøj -->
         <div class="clothes-box">
-
             <h3>Alt tøj i låneklubben</h3>
             <hr/>
-
             <div class="clothes-grid">
-
                 @foreach (Clothes item in clothes)
                 {
                     <div class="card">
                         <div class="card-body">
-
                             <h5>@item.Type</h5>
-
                             <p>Str. @item.Size · @item.Color</p>
-
                             @if (item.IsBorrowed)
                             {
                                 <span class="badge bg-danger">Udlånt</span>
-
                                 <p class="due-date">
                                     Ledig igen: @item.DueDate?.ToString("dd.MM.yyyy")
                                 </p>
@@ -70,17 +60,12 @@
                             {
                                 <span class="badge bg-success">Ledig</span>
                             }
-
                         </div>
                     </div>
                 }
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 @code {
