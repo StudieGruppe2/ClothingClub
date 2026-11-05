@@ -18,15 +18,10 @@ public class Clothes
     
     public DateTime? DueDate { get; set; } // den dato tøjet skal afleveres tilbage fra lån 
     
-    // Samler tøjets data til én tekst, fx "kjole, str. M, rød"
-    public string GetDescription()
-    {
-        return $"{Type}, str. {Size}, {Color}";
-    }
     
-    public bool IsBorrowed // Bruges til at vise til andre om tøjet er udlånt
+    /*public bool IsBorrowed // Bruges til at vise til andre om tøjet er udlånt
     {
         get { return BorrowedByMemberId != null; }
     }
-    
+  */  
 }

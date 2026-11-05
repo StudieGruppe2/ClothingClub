@@ -105,6 +105,7 @@
                         <div class="card-body">
                             <h5>@item.Type</h5>
                             <p>Str. @item.Size · @item.Color</p>
+                            <p>Ejer: @FindOwner(item.ItemID)</p>
                             @if (item.BorrowedByMemberId != null)
                             {
                                 <span class="badge bg-danger">Udlånt</span>
@@ -215,5 +216,23 @@
             borrowerID = 0; //Nulstiller valget til næste gang
         }
         await LoadData();
+    }
+    
+    private string FindOwner(int itemID)
+    {
+        // Gennemgår alle klubmedlemmer
+        foreach (ClubMember member in members)
+        {
+            // Gennemgår tøjet hos hvert medlem
+            foreach (Clothes item in member.Clothes)
+            {
+                if (item.ItemID == itemID)
+                {
+                    return member.Name;
+                }
+            }
+        }
+
+        return "Ukendt ejer";
     }
 }
