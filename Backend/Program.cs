@@ -5,7 +5,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// Dependency Injection: .NET får besked på, hvilket repository
+// den skal give til controlleren, når den beder om IClubMemberRepository.
 builder.Services.AddSingleton<IClubMemberRepository, ClubMemberRepositoryMemory>();
+
 //Skift fra Memory til MongoDB, når databasen skal bruges
 //builder.Services.AddSingleton<IClubMemberRepository, ClubMemberRepositoryMongoDB>();
 

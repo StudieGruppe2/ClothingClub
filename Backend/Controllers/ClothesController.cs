@@ -8,10 +8,14 @@ namespace Backend.Controllers;
 [Route("[controller]")]   // adressen bliver /clothes
 public class ClothesController : ControllerBase
 {
+    // Dependency Inversion: Controlleren afhænger af interfacet
+    // i stedet for Memory eller MongoDB, så vi kan skifte repository
+    // uden at ændre controllerens kode.
     private readonly IClubMemberRepository repository;
 
     public ClothesController(IClubMemberRepository repository)
     {
+        // Dependency Injection: Det valgte repository modtages udefra - gennem constructoren i stedet for at blive oprettet her.
         this.repository = repository;
     }
 

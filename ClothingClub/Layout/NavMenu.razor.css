@@ -32,3 +32,21 @@
 .navbar-toggler {
     border-color: #f9b6b8;
 }
+
+/* Login-knappen */
+.login-button {
+    background-color: transparent; /* Ingen baggrund */
+    color: #fff0e8;/* Cremefarvet tekst */
+    border: 1px solid #fff0e8;/* Hvidt omrids */
+    border-radius: 8px;
+    padding: 6px 12px;/* Lille knap */
+    font-size: 14px;
+    width: fit-content;/* Kun så bred som indholdet */
+    white-space: nowrap;
+}
+
+/* Når musen holdes over knappen */
+.login-button:hover {
+    background-color: #fff0e8;
+    color: #722f37;
+}
